@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0b0d13" />
+    <meta name="description" content="Doro Aim Test — 手机优先的准心反应与点击精准度训练。" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="stylesheet" href="./css/style.css" />
+    <title>Doro Aim Test · 准心反应测试</title>
+  </head>
+  <body>
+    <main id="app" class="app-shell">
+      <section id="home-view" class="view home-view active" data-view="home">
+        <div class="home-topline"><span class="status-dot"></span> DORO AIM LAB <span class="topline-rule"></span><span class="topline-small">MOBILE TRAINING</span></div>
+        <div class="brand-lockup">
+          <p class="eyebrow">REACTION / PRECISION / SPEED</p>
+          <h1>准心<span>反应测试</span></h1>
+          <p class="subtitle">反应 × 准度 × 手速</p>
+        </div>
+        <div class="home-target-mark" aria-hidden="true"><span></span></div>
+        <div class="home-actions">
+          <button class="button button-primary button-large" data-action="start-default"><span>开始游戏</span><b>↗</b></button>
+          <div class="button-grid">
+            <button class="button button-ghost" data-action="show-mode">模式选择 <span>›</span></button>
+            <button class="button button-ghost" data-action="show-leaderboard">本地排行榜 <span>›</span></button>
+            <button class="button button-ghost" data-action="show-settings">设置 <span>›</span></button>
+            <button class="button button-ghost" data-action="show-help">游戏说明 <span>›</span></button>
+          </div>
+        </div>
+        <div class="home-stats panel-grid">
+          <div class="stat-card"><span>本机最高分</span><strong id="home-best-score">0</strong><small>BEST SCORE</small></div>
+          <div class="stat-card"><span>最快反应</span><strong id="home-best-reaction">—</strong><small>FASTEST MS</small></div>
+          <div class="stat-card stat-card-wide"><span>最近一次成绩</span><strong id="home-recent-score">—</strong><small id="home-recent-meta">还没有训练记录</small></div>
+        </div>
+        <p class="copyright">Doro Aim Test <span>·</span> local training only</p>
+      </section>
+
+      <section id="mode-view" class="view sub-view" data-view="mode">
+        <div class="sub-header"><button class="icon-button" data-action="go-home">‹</button><div><p class="eyebrow">SELECT TRAINING</p><h2>选择模式</h2></div></div>
+        <div class="mode-list">
+          <button class="mode-card selected" data-mode="classic"><span class="mode-index">01</span><span class="mode-copy"><strong>经典模式</strong><small>30 秒 · 正常目标大小 · 正常刷新速度</small></span><span class="mode-arrow">↗</span></button>
+          <button class="mode-card" data-mode="precision"><span class="mode-index">02</span><span class="mode-copy"><strong>精准模式</strong><small>30 秒 · 目标更小 · 更强调头部命中</small></span><span class="mode-arrow">↗</span></button>
+          <button class="mode-card" data-mode="crazy"><span class="mode-index">03</span><span class="mode-copy"><strong>疯狂模式</strong><small>30 秒 · 更快出现 · 更短刷新间隔</small></span><span class="mode-arrow">↗</span></button>
+          <button class="mode-card" data-mode="single"><span class="mode-index">04</span><span class="mode-copy"><strong>单次反应测试</strong><small>连续 5 次 · 专注于最快与平均反应时间</small></span><span class="mode-arrow">↗</span></button>
+        </div>
+        <button class="button button-primary button-large bottom-action" data-action="start-selected">进入训练 <b>↗</b></button>
+      </section>
+
+      <section id="leaderboard-view" class="view sub-view" data-view="leaderboard">
+        <div class="sub-header"><button class="icon-button" data-action="go-home">‹</button><div><p class="eyebrow">LOCAL ONLY</p><h2>本地排行榜</h2></div></div>
+        <p class="muted intro-copy">只保存在这台设备的浏览器中，不上传、不联网。</p>
+        <div class="table-wrap"><table><thead><tr><th>#</th><th>玩家 / 模式</th><th>总分</th><th>命中率</th><th>最快</th><th>日期</th></tr></thead><tbody id="leaderboard-body"></tbody></table></div>
+        <button class="button button-ghost bottom-action" data-action="go-home">返回首页</button>
+      </section>
+
+      <section id="settings-view" class="view sub-view" data-view="settings">
+        <div class="sub-header"><button class="icon-button" data-action="go-home">‹</button><div><p class="eyebrow">CALIBRATION</p><h2>设置</h2></div></div>
+        <div class="settings-list">
+          <label class="setting-row"><span><strong>音效</strong><small>命中与失误提示音</small></span><input type="checkbox" id="setting-sound" /><i class="toggle"></i></label>
+          <label class="setting-row"><span><strong>震动反馈</strong><small>点击反馈，默认开启</small></span><input type="checkbox" id="setting-vibration" /><i class="toggle"></i></label>
+          <label class="setting-row"><span><strong>背景音乐</strong><small>轻量环境音，默认关闭</small></span><input type="checkbox" id="setting-music" /><i class="toggle"></i></label>
+          <label class="setting-row select-row"><span><strong>目标大小</strong><small>影响实际点击难度</small></span><select id="setting-target-size"><option value="small">小</option><option value="normal">标准</option><option value="large">大</option></select></label>
+          <label class="setting-row select-row"><span><strong>刷新速度</strong><small>目标被命中后的等待时间</small></span><select id="setting-refresh"><option value="slow">慢</option><option value="normal">标准</option><option value="fast">快</option></select></label>
+          <label class="setting-row select-row"><span><strong>准心样式</strong><small>显示在手指点击的位置</small></span><select id="setting-crosshair"><option value="cross">十字</option><option value="ring">圆环</option><option value="dot">圆点</option></select></label>
+          <label class="setting-row color-row"><span><strong>准心颜色</strong><small>命中点视觉反馈颜色</small></span><input type="color" id="setting-crosshair-color" value="#ff4f9a" /></label>
+          <label class="setting-row select-row"><span><strong>游戏时长</strong><small>经典 / 精准 / 疯狂模式</small></span><select id="setting-duration"><option value="15">15 秒</option><option value="30">30 秒</option><option value="60">60 秒</option></select></label>
+          <label class="setting-row nickname-row"><span><strong>玩家昵称</strong><small>用于成绩卡和本地排行榜</small></span><input type="text" id="setting-nickname" maxlength="12" placeholder="Doro" /></label>
+        </div>
+        <button class="button button-ghost bottom-action" data-action="go-home">保存并返回</button>
+      </section>
+
+      <section id="help-view" class="view sub-view" data-view="help">
+        <div class="sub-header"><button class="icon-button" data-action="go-home">‹</button><div><p class="eyebrow">FIELD MANUAL</p><h2>游戏说明</h2></div></div>
+        <div class="help-list">
+          <article class="help-item"><span>01</span><div><h3>点击角色</h3><p>目标出现后立刻点击。头部命中 <b class="pink">+250</b>，身体命中 <b class="gold">+100</b>。</p></div></article>
+          <article class="help-item"><span>02</span><div><h3>别点空白</h3><p>点击空白区域会扣 <b class="danger">−50</b>，并让 Combo 归零。</p></div></article>
+          <article class="help-item"><span>03</span><div><h3>保持连击</h3><p>连续命中保持 Combo。反应时间从目标出现的一刻开始记录。</p></div></article>
+          <article class="help-item"><span>04</span><div><h3>模式区别</h3><p>精准模式目标更小，疯狂模式刷新更快。单次测试会记录 5 次反应。</p></div></article>
+          <article class="help-item"><span>05</span><div><h3>本地数据</h3><p>成绩只保存在当前浏览器 localStorage。清除浏览器数据会同时清除记录。</p></div></article>
+        </div>
+        <button class="button button-primary button-large bottom-action" data-action="start-default">开始训练 <b>↗</b></button>
+      </section>
+
+      <section id="game-view" class="view game-view" data-view="game">
+        <div class="game-hud"><div class="hud-block"><small>TIME</small><strong id="game-time">30.0</strong></div><div class="hud-score"><small id="game-mode-label">CLASSIC</small><strong id="game-score">0</strong></div><div class="hud-block hud-combo"><small>COMBO</small><strong id="game-combo">0</strong></div></div>
+        <div id="game-stage" class="game-stage" aria-label="游戏区域"><img id="target" class="target" src="./assets/target.png" alt="点击目标" draggable="false" /><div id="hit-layer" class="hit-layer"></div></div>
+        <div class="game-footer"><button class="game-exit" data-action="quit-game">退出训练</button><span id="game-progress">READY</span></div>
+      </section>
+
+      <section id="results-view" class="view sub-view results-view" data-view="results">
+        <div class="sub-header results-header"><div><p class="eyebrow">SESSION COMPLETE</p><h2>训练结束</h2></div><span id="new-record-badge" class="record-badge hidden">NEW RECORD</span></div>
+        <div class="result-hero"><span>总分</span><strong id="result-score">0</strong><small id="result-mode">经典模式 · 30 秒</small></div>
+        <div class="result-grid">
+          <div class="result-stat"><span>头部命中</span><strong id="result-head">0</strong></div><div class="result-stat"><span>身体命中</span><strong id="result-body">0</strong></div><div class="result-stat"><span>总命中</span><strong id="result-hits">0</strong></div><div class="result-stat"><span>点空次数</span><strong id="result-misses">0</strong></div><div class="result-stat"><span>命中率</span><strong id="result-accuracy">0%</strong></div><div class="result-stat"><span>最快反应</span><strong id="result-fastest">—</strong></div><div class="result-stat"><span>平均反应</span><strong id="result-average">—</strong></div><div class="result-stat"><span>最高连击</span><strong id="result-combo">0</strong></div>
+        </div>
+        <div class="result-actions"><button class="button button-primary" data-action="replay">再来一局 <b>↗</b></button><button class="button button-ghost" data-action="show-card">生成成绩卡</button><button class="button button-ghost" data-action="copy-result">复制成绩</button><button class="button button-text" data-action="go-home">返回首页</button></div>
+      </section>
+
+      <section id="card-view" class="view card-view" data-view="card">
+        <div class="card-toolbar"><button class="icon-button" data-action="back-results">‹</button><button class="button button-ghost compact-button" data-action="copy-result">复制成绩</button></div>
+        <div id="score-card" class="score-card"><div class="score-card-grid"></div><div class="score-card-top"><span class="card-kicker">DORO AIM LAB / SESSION REPORT</span><h2>Doro <em>Aim Test</em></h2><p id="card-nickname">Doro</p></div><div class="card-score"><span>TOTAL SCORE</span><strong id="card-score-value">0</strong></div><div class="card-primary-metrics"><div><span>FASTEST REACTION</span><strong id="card-fastest">—</strong></div><div><span>AVERAGE REACTION</span><strong id="card-average">—</strong></div><div><span>ACCURACY</span><strong id="card-accuracy">0%</strong></div></div><div class="card-detail-grid"><div><span>HEAD HITS</span><strong id="card-head">0</strong></div><div><span>BODY HITS</span><strong id="card-body">0</strong></div><div><span>BEST COMBO</span><strong id="card-combo">0</strong></div><div><span>MODE</span><strong id="card-mode">经典</strong></div></div><div class="card-bottom"><span id="card-date">2026-09-10</span><strong id="card-best">LOCAL BEST</strong></div></div>
+        <p class="card-hint">旋转手机截图，分享你的训练成绩</p>
+      </section>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script defer src="./js/storage.js"></script>
+    <script defer src="./js/game.js"></script>
+    <script defer src="./js/app.js"></script>
+  </body>
+</html>
