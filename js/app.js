@@ -1,3 +1,5 @@
+// Keep imported names local: classic scripts otherwise share global declarations.
+(() => {
 const { AimGame, MODE_CONFIG } = window.DoroAimGame;
 const { formatDate, loadState, modeLabel, saveResult, saveState, updateSettings } = window.DoroStorage;
 
@@ -101,6 +103,7 @@ function showFeedback({ x, y, text, tone }) {
 }
 
 function startGame(mode = selectedMode) {
+  game?.destroy();
   selectedMode = mode;
   showView('game');
   const settings = { ...state.settings };
@@ -203,3 +206,4 @@ function bindEvents() {
 }
 
 refreshHome(); renderSettings(); bindEvents();
+})();

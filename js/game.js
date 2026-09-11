@@ -40,6 +40,12 @@ class AimGame {
     if (this.target.complete) this.onImageLoad();
   }
 
+  destroy() {
+    this.stop(false);
+    this.stage.removeEventListener('pointerdown', this.onPointerDown);
+    this.target.removeEventListener('load', this.onImageLoad);
+  }
+
   newStats() {
     return { score: 0, headHits: 0, bodyHits: 0, hits: 0, misses: 0, reactions: [], combo: 0, maxCombo: 0 };
   }
