@@ -9,6 +9,8 @@ let currentResult = null;
 let game = null;
 let musicContext = null;
 let musicNodes = [];
+let musicTimer = null;
+let musicGeneration = 0;
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -37,6 +39,7 @@ function renderLeaderboard() {
 function renderSettings() {
   const settings = state.settings;
   $('#setting-sound').checked = settings.sound;
+  $('#setting-volume').value = String(settings.volume ?? 0.7);
   $('#setting-vibration').checked = settings.vibration;
   $('#setting-music').checked = settings.music;
   $('#setting-target-size').value = settings.targetSize;
@@ -55,38 +58,63 @@ function vibrate(pattern) {
   if (state.settings.vibration && navigator.vibrate) navigator.vibrate(pattern);
 }
 
-function beep(kind = 'hit') {
-  if (!state.settings.sound) return;
+function unlockAudio() {
   try {
-    const context = musicContext || new AudioContext();
-    musicContext = context;
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = kind === 'miss' ? 'sawtooth' : 'sine';
-    oscillator.frequency.value = kind === 'head' ? 880 : kind === 'body' ? 560 : 150;
-    gain.gain.setValueAtTime(0.045, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.11);
-    oscillator.connect(gain).connect(context.destination);
-    oscillator.start(); oscillator.stop(context.currentTime + 0.12);
-  } catch { /* Audio is optional on browsers that block it. */ }
+    const Audio = window.AudioContext || window.webkitAudioContext;
+    if (!Audio) return Promise.resolve(null);
+    if (!musicContext || musicContext.state === 'closed') musicContext = new Audio();
+    // Call resume inside the start/tap gesture, including iOS interrupted sessions.
+    const ready = musicContext.state === 'running' ? Promise.resolve() : musicContext.resume();
+    return ready.then(() => musicContext).catch(() => null);
+  } catch { return Promise.resolve(null); }
+}
+
+function playTone(context, frequency, offset, duration, strength, type = 'triangle') {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  const start = context.currentTime + offset;
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, start);
+  oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.7, start + duration);
+  gain.gain.setValueAtTime(0.001, start);
+  gain.gain.linearRampToValueAtTime(strength * (state.settings.volume ?? 0.7), start + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+  oscillator.connect(gain).connect(context.destination);
+  oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+  oscillator.start(start); oscillator.stop(start + duration + 0.01);
+  return oscillator;
+}
+
+function beep(kind = 'body', preview = false) {
+  if (!preview && !state.settings.sound) return;
+  void unlockAudio().then(context => {
+    if (!context || context.state !== 'running') {
+      if (preview) showToast('声音未启用，请在 Safari / Chrome 中重试');
+      return;
+    }
+    const frequency = { head: 1200, body: 680, miss: 240, start: 880 }[kind] || 680;
+    playTone(context, frequency, 0, 0.16, 0.28);
+    if (kind === 'head' || kind === 'start') playTone(context, frequency * 1.4, 0.07, 0.15, 0.16);
+    if (preview) showToast('已播放测试音，请确认手机媒体音量');
+  });
 }
 
 function setMusic(enabled) {
-  if (!enabled) {
-    musicNodes.forEach((node) => { try { node.stop(); } catch {} });
-    musicNodes = [];
-    return;
-  }
-  try {
-    const context = musicContext || new AudioContext();
-    musicContext = context;
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = 'sine'; oscillator.frequency.value = 110;
-    gain.gain.value = 0.008;
-    oscillator.connect(gain).connect(context.destination); oscillator.start();
-    musicNodes = [oscillator];
-  } catch { /* Background music is an enhancement, not a dependency. */ }
+  const generation = ++musicGeneration;
+  window.clearInterval(musicTimer);
+  musicNodes.forEach(node => { try { node.stop(); } catch {} });
+  musicNodes = [];
+  if (!enabled) return;
+  void unlockAudio().then(context => {
+    if (!context || generation !== musicGeneration) return;
+    let step = 0;
+    const notes = [220, 330, 440, 330, 262, 392, 523, 392];
+    const beat = () => {
+      musicNodes = [playTone(context, notes[step++ % notes.length], 0, 0.24, 0.08, 'sine')];
+    };
+    beat();
+    musicTimer = window.setInterval(beat, 300);
+  });
 }
 
 function showFeedback({ x, y, text, tone }) {
@@ -103,6 +131,7 @@ function showFeedback({ x, y, text, tone }) {
 }
 
 function startGame(mode = selectedMode) {
+  beep('start');
   game?.destroy();
   selectedMode = mode;
   showView('game');
@@ -192,9 +221,14 @@ function bindEvents() {
     if (action === 'show-card') { populateCard(); showView('card'); }
     if (action === 'back-results') showView('results');
     if (action === 'copy-result') copyResult();
+    if (action === 'test-sound') beep('head', true);
   });
   $$('[data-mode]').forEach((button) => button.addEventListener('click', () => { selectedMode = button.dataset.mode; $$('[data-mode]').forEach((item) => item.classList.toggle('selected', item === button)); }));
-  $('#setting-sound').addEventListener('change', (event) => updateSettings(state, { sound: event.target.checked }));
+  $('#setting-sound').addEventListener('change', (event) => {
+    updateSettings(state, { sound: event.target.checked });
+    if (event.target.checked) beep('head');
+  });
+  $('#setting-volume').addEventListener('input', event => updateSettings(state, { volume: Number(event.target.value) }));
   $('#setting-vibration').addEventListener('change', (event) => updateSettings(state, { vibration: event.target.checked }));
   $('#setting-music').addEventListener('change', (event) => { updateSettings(state, { music: event.target.checked }); setMusic(event.target.checked); });
   $('#setting-target-size').addEventListener('change', (event) => updateSettings(state, { targetSize: event.target.value }));

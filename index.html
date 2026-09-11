@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0b0d13" />
     <meta name="description" content="Doro Aim Test — 手机优先的准心反应与点击精准度训练。" />
     <link rel="manifest" href="./manifest.json" />
-    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/style.css?v=20260911-2" />
     <title>Doro Aim Test · 准心反应测试</title>
   </head>
   <body>
@@ -39,9 +39,9 @@
       <section id="mode-view" class="view sub-view" data-view="mode">
         <div class="sub-header"><button class="icon-button" data-action="go-home">‹</button><div><p class="eyebrow">SELECT TRAINING</p><h2>选择模式</h2></div></div>
         <div class="mode-list">
-          <button class="mode-card selected" data-mode="classic"><span class="mode-index">01</span><span class="mode-copy"><strong>经典模式</strong><small>30 秒 · 正常目标大小 · 正常刷新速度</small></span><span class="mode-arrow">↗</span></button>
-          <button class="mode-card" data-mode="precision"><span class="mode-index">02</span><span class="mode-copy"><strong>精准模式</strong><small>30 秒 · 目标更小 · 更强调头部命中</small></span><span class="mode-arrow">↗</span></button>
-          <button class="mode-card" data-mode="crazy"><span class="mode-index">03</span><span class="mode-copy"><strong>疯狂模式</strong><small>30 秒 · 更快出现 · 更短刷新间隔</small></span><span class="mode-arrow">↗</span></button>
+          <button class="mode-card selected" data-mode="classic"><span class="mode-index">01</span><span class="mode-copy"><strong>经典模式</strong><small>轻盈游移 · 小型目标 · 练习快速跟点</small></span><span class="mode-arrow">↗</span></button>
+          <button class="mode-card" data-mode="precision"><span class="mode-index">02</span><span class="mode-copy"><strong>精准模式</strong><small>更小目标 · 微幅移动 · 瞄准头部</small></span><span class="mode-arrow">↗</span></button>
+          <button class="mode-card" data-mode="crazy"><span class="mode-index">03</span><span class="mode-copy"><strong>疯狂模式</strong><small>快速左右闪动 · 更短刷新间隔</small></span><span class="mode-arrow">↗</span></button>
           <button class="mode-card" data-mode="single"><span class="mode-index">04</span><span class="mode-copy"><strong>单次反应测试</strong><small>连续 5 次 · 专注于最快与平均反应时间</small></span><span class="mode-arrow">↗</span></button>
         </div>
         <button class="button button-primary button-large bottom-action" data-action="start-selected">进入训练 <b>↗</b></button>
@@ -58,6 +58,8 @@
         <div class="sub-header"><button class="icon-button" data-action="go-home">‹</button><div><p class="eyebrow">CALIBRATION</p><h2>设置</h2></div></div>
         <div class="settings-list">
           <label class="setting-row"><span><strong>音效</strong><small>命中与失误提示音</small></span><input type="checkbox" id="setting-sound" /><i class="toggle"></i></label>
+          <label class="setting-row volume-row"><span><strong>音量</strong><small>音效与背景音乐</small></span><input type="range" id="setting-volume" min="0" max="1" step="0.05" value="0.7" /></label>
+          <button class="button button-ghost sound-preview" data-action="test-sound">试听命中音效 <span>♪</span></button>
           <label class="setting-row"><span><strong>震动反馈</strong><small>点击反馈，默认开启</small></span><input type="checkbox" id="setting-vibration" /><i class="toggle"></i></label>
           <label class="setting-row"><span><strong>背景音乐</strong><small>轻量环境音，默认关闭</small></span><input type="checkbox" id="setting-music" /><i class="toggle"></i></label>
           <label class="setting-row select-row"><span><strong>目标大小</strong><small>影响实际点击难度</small></span><select id="setting-target-size"><option value="small">小</option><option value="normal">标准</option><option value="large">大</option></select></label>
@@ -76,7 +78,7 @@
           <article class="help-item"><span>01</span><div><h3>点击角色</h3><p>目标出现后立刻点击。头部命中 <b class="pink">+250</b>，身体命中 <b class="gold">+100</b>。</p></div></article>
           <article class="help-item"><span>02</span><div><h3>别点空白</h3><p>点击空白区域会扣 <b class="danger">−50</b>，并让 Combo 归零。</p></div></article>
           <article class="help-item"><span>03</span><div><h3>保持连击</h3><p>连续命中保持 Combo。反应时间从目标出现的一刻开始记录。</p></div></article>
-          <article class="help-item"><span>04</span><div><h3>模式区别</h3><p>精准模式目标更小，疯狂模式刷新更快。单次测试会记录 5 次反应。</p></div></article>
+          <article class="help-item"><span>04</span><div><h3>模式区别</h3><p>经典模式人物轻微游移，精准模式目标更小，疯狂模式移动和刷新更快。单次测试目标静止，记录 5 次反应。系统开启“减少动态效果”时目标保持静止。</p></div></article>
           <article class="help-item"><span>05</span><div><h3>本地数据</h3><p>成绩只保存在当前浏览器 localStorage。清除浏览器数据会同时清除记录。</p></div></article>
         </div>
         <button class="button button-primary button-large bottom-action" data-action="start-default">开始训练 <b>↗</b></button>
@@ -104,8 +106,8 @@
       </section>
     </main>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script defer src="./js/storage.js?v=20260911-1"></script>
-    <script defer src="./js/game.js?v=20260911-1"></script>
-    <script defer src="./js/app.js?v=20260911-1"></script>
+    <script defer src="./js/storage.js?v=20260911-2"></script>
+    <script defer src="./js/game.js?v=20260911-2"></script>
+    <script defer src="./js/app.js?v=20260911-2"></script>
   </body>
 </html>

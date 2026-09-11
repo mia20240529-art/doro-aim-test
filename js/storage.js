@@ -2,6 +2,7 @@ const STORAGE_KEY = 'doro-aim-test:v1';
 
 const DEFAULT_SETTINGS = {
   sound: true,
+  volume: 0.7,
   vibration: true,
   music: false,
   targetSize: 'normal',

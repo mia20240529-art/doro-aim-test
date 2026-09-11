@@ -26,6 +26,7 @@ class AimGame {
     this.targetState = null;
     this.spawnTimer = null;
     this.clockTimer = null;
+    this.motionFrame = null;
     this.singleCount = 0;
     this.deadline = 0;
     this.startedAt = 0;
@@ -78,6 +79,7 @@ class AimGame {
   }
 
   stop(emit = true) {
+    window.cancelAnimationFrame(this.motionFrame);
     this.running = false;
     window.clearTimeout(this.spawnTimer);
     window.clearInterval(this.clockTimer);
@@ -97,6 +99,7 @@ class AimGame {
 
   finish() {
     if (!this.running) return;
+    window.cancelAnimationFrame(this.motionFrame);
     this.running = false;
     window.clearTimeout(this.spawnTimer);
     window.clearInterval(this.clockTimer);
@@ -135,23 +138,42 @@ class AimGame {
     }
     const rect = this.stage.getBoundingClientRect();
     const config = MODE_CONFIG[this.mode];
-    const base = Math.min(rect.width * 0.47, 260);
+    const base = Math.min(rect.width * 0.29, 154);
     const scale = (SIZE_SCALE[this.settings.targetSize] || 1) * config.targetScale;
-    const width = Math.max(142, base * scale);
     const ratio = this.target.naturalHeight && this.target.naturalWidth ? this.target.naturalHeight / this.target.naturalWidth : 1;
+    const stageStyle = window.getComputedStyle(this.stage);
+    const safeTop = parseFloat(stageStyle.paddingTop) || 94;
+    const safeBottom = parseFloat(stageStyle.paddingBottom) || 64;
+    const width = Math.max(1, Math.min(Math.max(78, base * scale), rect.width - 40, (rect.height - safeTop - safeBottom) / ratio));
     const height = width * ratio;
-    const safeTop = 82;
-    const safeBottom = 42;
-    const maxX = Math.max(12, rect.width - width - 12);
+    const maxX = Math.max(20, rect.width - width - 20);
     const maxY = Math.max(safeTop, rect.height - height - safeBottom);
-    const x = 12 + Math.random() * Math.max(1, maxX - 12);
-    const y = safeTop + Math.random() * Math.max(1, maxY - safeTop);
+    const x = 20 + Math.random() * Math.max(0, maxX - 20);
+    const y = safeTop + Math.random() * Math.max(0, maxY - safeTop);
     this.target.style.width = `${width}px`;
     this.target.style.left = `${x}px`;
     this.target.style.top = `${y}px`;
-    this.targetState = { x, y, width, height, spawnedAt: performance.now() };
+    this.target.style.transform = 'translate3d(0, 0, 0)';
+    this.targetState = { x, y, originX: x, originY: y, width, height, maxX, maxY, safeTop, spawnedAt: performance.now() };
     this.target.classList.add('is-visible');
+    window.cancelAnimationFrame(this.motionFrame);
+    if (this.mode !== 'single' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.motionFrame = window.requestAnimationFrame(() => this.moveTarget());
+    }
     this.callbacks.onTarget?.();
+  }
+
+  moveTarget() {
+    const t = this.targetState;
+    if (!this.running || !t) return;
+    const elapsed = (performance.now() - t.spawnedAt) / 1000;
+    const speed = this.mode === 'crazy' ? 3.6 : 2.2;
+    const distance = this.mode === 'crazy' ? 52 : this.mode === 'precision' ? 18 : 30;
+    t.x = Math.max(20, Math.min(t.maxX, t.originX + Math.sin(elapsed * speed) * distance));
+    t.y = Math.max(t.safeTop, Math.min(t.maxY, t.originY + Math.sin(elapsed * speed * 1.3) * distance * 0.45));
+    // Render and hit testing share the same position, so movement never leaves a stale hitbox.
+    this.target.style.transform = `translate3d(${t.x - t.originX}px, ${t.y - t.originY}px, 0)`;
+    this.motionFrame = window.requestAnimationFrame(() => this.moveTarget());
   }
 
   pointIsOpaque(localX, localY) {
@@ -168,6 +190,7 @@ class AimGame {
 
   onPointerDown(event) {
     if (!this.running) return;
+    if (this.deadline && performance.now() >= this.deadline) { this.finish(); return; }
     event.preventDefault();
     const rect = this.stage.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -193,6 +216,7 @@ class AimGame {
     this.stats.combo += 1;
     this.stats.maxCombo = Math.max(this.stats.maxCombo, this.stats.combo);
     this.target.classList.remove('is-visible');
+    window.cancelAnimationFrame(this.motionFrame);
     this.targetState = null;
     this.callbacks.onHit?.({ type: isHead ? 'head' : 'body', points: isHead ? 250 : 100, reaction, combo: this.stats.combo, x, y });
     this.callbacks.onUpdate?.(this.stats);
